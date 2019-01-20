@@ -20,6 +20,11 @@ class DockerChain:
       
       for (idx, stage) in enumerate(self.stages):
         results.append(self._run_stage(stage, mount, environ))
+        if not results[-1]["success"]:
+          # TODO log failure
+          break
+
+    # TODO provide some overall indication of success?
     return results
 
   def _pull_images(self):
@@ -54,11 +59,13 @@ class DockerChain:
 
     container, killed = self._wait_for_stage(stage, options)
     result = {
-      "attrs": self.client.api.inspect_container(container.id),
+      "data": self.client.api.inspect_container(container.id),
+      "killed": killed,
       "logs": container.logs(timestamps=True),
-      "killed": killed
     }
+    result["success"] = (not killed) and (result["data"]["State"]["ExitCode"] == 0)
     container.remove()
+
     return result
 
   def _wait_for_stage(self, stage, options):
