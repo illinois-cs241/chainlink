@@ -1,11 +1,24 @@
 import docker
 import json
+import logging
 import os.path as path
 import stopit
 import tempfile
 import time
 
+# set up module logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# turn off stopit's verbose logger
+stopit_logger = logging.getLogger('stopit')
+stopit_logger.setLevel(logging.ERROR)
+
 class DockerChain:
+  """
+  A utility for running docker containers sequentially
+  """
+
   def __init__(self, stages, workdir="/tmp"):
     self.client = docker.from_env()
     self.stages = stages
@@ -15,25 +28,30 @@ class DockerChain:
   def run(self, environ, roster=None):
     results = []
     with tempfile.TemporaryDirectory(dir=self.workdir) as mount:
+      logger.info("using {} for temporary job directory".format(mount))
       if roster:
+        logger.info("installing roster")
         self._install_roster(mount, roster)
       
       for (idx, stage) in enumerate(self.stages):
+        logger.info("running stage {}".format(idx + 1))
         results.append(self._run_stage(stage, mount, environ))
         if not results[-1]["success"]:
-          # TODO log failure
+          logger.error("stage {} was unsuccessful".format(idx + 1))
           break
+        else:
+          logger.info("stage {} was successful".format(idx + 1))
 
-    # TODO provide some overall indication of success?
     return results
 
   def _pull_images(self):
     images = [stage["image"] for stage in self.stages]
     for image in set(images):
-      self.client.pull(image)
+      logger.debug("pulling image '{}'".format(image))
+      self.client.images.pull(image)
 
   def _install_roster(self, mount, roster):
-    with open(path.join(mount, "roster.json")) as roster_file:
+    with open(path.join(mount, "roster.json"), "w") as roster_file:
       json.dump(roster, roster_file)
 
   def _run_stage(self, stage, mount, environ):
@@ -59,29 +77,33 @@ class DockerChain:
 
     container, killed = self._wait_for_stage(stage, options)
     result = {
-      "data": self.client.api.inspect_container(container.id),
+      "data": self.client.api.inspect_container(container.id)["State"],
       "killed": killed,
       "logs": container.logs(timestamps=True),
     }
-    result["success"] = (not killed) and (result["data"]["State"]["ExitCode"] == 0)
+    result["success"] = (not killed) and (result["data"]["ExitCode"] == 0)
     container.remove()
 
     return result
 
   def _wait_for_stage(self, stage, options):
     timeout = stage.get("timeout", 30)
-    container = self.containers.run(stage["image"], **options)
+    container = self.client.containers.run(stage["image"], **options)
     killed = True
 
     with stopit.ThreadingTimeout(timeout) as timeout_ctx:
       assert timeout_ctx.state == timeout_ctx.EXECUTING 
       container.wait()
 
-    if to_ctx_mgr.state == to_ctx_mgr.EXECUTED:
+    if timeout_ctx.state == timeout_ctx.EXECUTED:
       killed = False
-    elif to_ctx_mgr.state == to_ctx_mgr.TIMED_OUT:
+    elif timeout_ctx.state == timeout_ctx.TIMED_OUT:
+      logger.error("killed stage after {} seconds".format(timeout))
       container.kill()
     else:
-      # TODO there's an unexpected error, log about it
+      logger.error("unexpected timeout context state '{}'".format(timeout_ctx.state))
 
     return container, killed
+
+  def __del__(self):
+    self.client.close()

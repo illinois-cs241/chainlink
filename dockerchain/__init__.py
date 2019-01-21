@@ -1,1 +1,1 @@
-from chain import DockerChain
+from .chain import DockerChain
