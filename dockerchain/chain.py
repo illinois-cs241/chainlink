@@ -71,6 +71,7 @@ class DockerChain:
       "mem_limit": stage.get("memory", "2g"),
       "memswap_limit": stage.get("memory", "2g"), # same as memory, so no swap
       "network_disabled": not stage.get("networking", True),
+      "cap_add": stage.get("capabilities", []),
       "volumes": volumes,
       "tty": True
     }
