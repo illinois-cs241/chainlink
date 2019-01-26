@@ -1,2 +1,2 @@
-docker
-stopit
+docker==3.7.0
+stopit==1.1.2
