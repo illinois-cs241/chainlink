@@ -1,12 +1,8 @@
 import unittest
 
-from dockerchain import DockerChain
+from chainlink import Chainlink
 
 stages = [
-  {
-    "image": "alpine:3.5",
-    "entrypoint": ["cat", "job/roster.json"]
-  },
   {
     "image": "alpine:3.5",
     "entrypoint": ["env"],
@@ -25,16 +21,12 @@ env = {
   "SEMESTER": "sp18",
   "ASSIGNMENT": "mp1"
 }
-roster = [
-  { "NETID": "example1" }
-]
 
 class TestBasicChaining(unittest.TestCase):
 
   def test_basic_chain(self):
-    chain = DockerChain(stages)
-    results = chain.run(env, roster=roster)
+    chain = Chainlink(stages)
+    results = chain.run(env)
     
-    self.assertTrue("example1" in results[0]["logs"].decode("utf-8"))
-    self.assertTrue("TEST=testing" in results[1]["logs"].decode("utf-8"))
-    self.assertEqual(results[2]["data"]["ExitCode"], 0)
+    self.assertTrue("TEST=testing" in results[0]["logs"].decode("utf-8"))
+    self.assertEqual(results[1]["data"]["ExitCode"], 0)

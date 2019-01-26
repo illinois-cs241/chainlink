@@ -14,7 +14,7 @@ logger.setLevel(logging.INFO)
 stopit_logger = logging.getLogger('stopit')
 stopit_logger.setLevel(logging.ERROR)
 
-class DockerChain:
+class Chainlink:
   """
   A utility for running docker containers sequentially
   """
@@ -25,13 +25,10 @@ class DockerChain:
     self.workdir = workdir
     self._pull_images()
 
-  def run(self, environ, roster=None):
+  def run(self, environ):
     results = []
     with tempfile.TemporaryDirectory(dir=self.workdir) as mount:
       logger.info("using {} for temporary job directory".format(mount))
-      if roster:
-        logger.info("installing roster")
-        self._install_roster(mount, roster)
       
       for (idx, stage) in enumerate(self.stages):
         logger.info("running stage {}".format(idx + 1))
@@ -49,10 +46,6 @@ class DockerChain:
     for image in set(images):
       logger.debug("pulling image '{}'".format(image))
       self.client.images.pull(image)
-
-  def _install_roster(self, mount, roster):
-    with open(path.join(mount, "roster.json"), "w") as roster_file:
-      json.dump(roster, roster_file)
 
   def _run_stage(self, stage, mount, environ):
     environ = { **environ, **stage.get("env", {}) }
