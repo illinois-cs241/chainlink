@@ -2,8 +2,10 @@ import docker
 import json
 import logging
 import os.path as path
+import queue
 import stopit
 import tempfile
+import threading
 import time
 
 # set up module logger
@@ -42,10 +44,16 @@ class Chainlink:
     return results
 
   def _pull_images(self):
-    images = [stage["image"] for stage in self.stages]
-    for image in set(images):
+    images = set([stage["image"] for stage in self.stages])
+    threads = []
+
+    for image in images:
       logger.debug("pulling image '{}'".format(image))
-      self.client.images.pull(image)
+      t = threading.Thread(target=self.client.images.pull, args=(image,))
+      t.start()
+      threads.append(t)
+    for t in threads:
+      t.join()
 
   def _run_stage(self, stage, mount, environ):
     environ = { **environ, **stage.get("env", {}) }
