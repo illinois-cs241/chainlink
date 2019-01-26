@@ -1,6 +1,6 @@
 import unittest
 
-from dockerchain import DockerChain
+from chainlink import Chainlink
 
 stages = [
   {
@@ -18,8 +18,8 @@ stages = [
 class TestCapAdd(unittest.TestCase):
 
   def test_basic_chain(self):
-    chain = DockerChain(stages)
-    results = chain.run({}, roster=[])
+    chain = Chainlink(stages)
+    results = chain.run({})
 
     self.assertEqual(results[0]["data"]["ExitCode"], 0)
     self.assertEqual(results[1]["data"]["ExitCode"], 0)
