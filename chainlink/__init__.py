@@ -81,7 +81,10 @@ class Chainlink:
     result = {
       "data": self.client.api.inspect_container(container.id)["State"],
       "killed": killed,
-      "logs": container.logs(timestamps=True),
+      "logs": {
+        "stdout": container.logs(stderr=False, timestamps=True),
+        "stderr": container.logs(stdout=False, timestamps=True)
+      }
     }
     result["success"] = (not killed) and (result["data"]["ExitCode"] == 0)
     container.remove()
