@@ -2,7 +2,6 @@ import docker
 import json
 import logging
 import os.path as path
-import queue
 import stopit
 import tempfile
 import threading
@@ -25,6 +24,7 @@ class Chainlink:
     self.client = docker.from_env()
     self.stages = stages
     self.workdir = workdir
+    self._pull_status = {}
     self._pull_images()
 
   def run(self, environ):
@@ -49,11 +49,29 @@ class Chainlink:
 
     for image in images:
       logger.debug("pulling image '{}'".format(image))
-      t = threading.Thread(target=self.client.images.pull, args=(image,))
+      t = threading.Thread(target=self._pull_image, args=(self.client, image, self._pull_status))
       t.start()
       threads.append(t)
     for t in threads:
       t.join()
+    for image in images:
+      if not self._pull_status.get(image):
+        raise ValueError("Failed to pull all images")
+
+  @staticmethod
+  def _pull_image(client, image, status):
+    try:
+      client.images.pull(image)
+      status[image] = True
+      return
+    except docker.errors.ImageNotFound:
+      logger.debug("image '{}' not found on Docker Hub".format(image))
+    
+    try:
+      client.images.get(image)
+      status[image] = True
+    except docker.errors.ImageNotFound:
+      logger.error("image '{}' not found remotely or locally".format(image))
 
   def _run_stage(self, stage, mount, environ):
     environ = { **environ, **stage.get("env", {}) }
