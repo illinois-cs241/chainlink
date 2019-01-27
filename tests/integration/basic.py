@@ -28,5 +28,5 @@ class TestBasicChaining(unittest.TestCase):
     chain = Chainlink(stages)
     results = chain.run(env)
     
-    self.assertTrue("TEST=testing" in results[0]["logs"].decode("utf-8"))
+    self.assertTrue("TEST=testing" in results[0]["logs"]["stdout"].decode("utf-8"))
     self.assertEqual(results[1]["data"]["ExitCode"], 0)
