@@ -1,8 +1,9 @@
+import asyncio
+import concurrent
 import docker
 import json
 import logging
 import os.path as path
-import stopit
 import tempfile
 import threading
 import time
@@ -24,6 +25,7 @@ class Chainlink:
     self.client = docker.from_env()
     self.stages = stages
     self.workdir = workdir
+    self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     self._pull_status = {}
     self._pull_images()
 
@@ -112,20 +114,23 @@ class Chainlink:
   def _wait_for_stage(self, stage, options):
     timeout = stage.get("timeout", 30)
     container = self.client.containers.run(stage["image"], **options)
-    killed = True
 
-    with stopit.ThreadingTimeout(timeout) as timeout_ctx:
-      assert timeout_ctx.state == timeout_ctx.EXECUTING 
-      container.wait()
-
-    if timeout_ctx.state == timeout_ctx.EXECUTED:
-      killed = False
-    elif timeout_ctx.state == timeout_ctx.TIMED_OUT:
-      logger.error("killed stage after {} seconds".format(timeout))
-      container.kill()
-    else:
-      logger.error("unexpected timeout context state '{}'".format(timeout_ctx.state))
-
+    # anonymous async runner for executing and waiting on container
+    async def __run(loop, executor):
+      try:
+        await asyncio.wait_for(
+          loop.run_in_executor(executor, container.wait), timeout=timeout
+        )
+      except asyncio.TimeoutError:
+        logger.error("killing container after {} seconds".format(timeout))
+        container.kill()
+        return True
+      return False
+    
+    event_loop = asyncio.get_event_loop()
+    killed = event_loop.run_until_complete(
+      asyncio.gather(__run(event_loop, self._executor))
+    )[0]
     return container, killed
 
   def __del__(self):
