@@ -26,7 +26,7 @@ The `Chainlink` constructor takes a list of `stages` to chain and a `workdir` in
 # a single-stage specification
 stages = [{
   # container capabilities (optional, defaults to [])
-  "capabilities": ["NET_ADMIN, "SYS_ADMIN"],
+  "capabilities": ["NET_ADMIN", "SYS_ADMIN"],
   # container entrypoint (optional, defaults to image entrypoint)
   "entrypoint": ["ip", "link", "set", "lo", "up"],
   # container hostname (optional, defaults to 'container')
@@ -47,6 +47,7 @@ stages = [{
 # use home directory as tempdir root
 workdir = "/home/user/"
 
+from chainlink import Chainlink
 chain = Chainlink(stages, workdir=workdir)
 ```
 
@@ -60,7 +61,7 @@ run(self, environ={}):
 
 The `Chainlink` run function takes a base environment (`environ`) and executes each container specified by `stages` during construction in sequence. If a stage fails, then no subsequent stages will be run.
 
-Unless it makes sense to have a base environment for all containers, `environ` can usually be left empty and specified in the `env` option of each stage.
+Unless it makes sense to have a base environment for all containers, `environ` can usually be left empty and specified in the `env` option of each stage instead.
 
 The run function returns a list of object, an example of which is annotated below:
 
