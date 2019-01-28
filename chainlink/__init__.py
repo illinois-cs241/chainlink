@@ -12,10 +12,6 @@ import time
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# turn off stopit's verbose logger
-stopit_logger = logging.getLogger('stopit')
-stopit_logger.setLevel(logging.ERROR)
-
 class Chainlink:
   """
   A utility for running docker containers sequentially
