@@ -93,3 +93,13 @@ This helps facilitate cross-stage communication, which becomes particularly usef
 - Docker usually needs to be run with `sudo` in order to get the right permissions to work. Please check that you have the proper permissions to interact with Docker before reporting an issue
 - Files mounted into the temp directory used to store `/job` files across stages usually are written as `sudo` due to Dockers defaults. Failing to use this library with `sudo` may result in failures during cleanup
 - This module needs a default event loop to be present in order to operate. In most cases, you will not have to take any action to ensure that one exists. In more complicated systems, you may have to set a default event loop for the thread that you are running a `Chainlink` instance in
+
+### Testing
+
+To run integration tests, run:
+
+```sh
+sudo python3 -m unittest tests/integration/*.py
+```
+
+Note you should execute this command from the root of the project to ensure imports are correctly specified.
