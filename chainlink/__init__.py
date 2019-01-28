@@ -25,7 +25,7 @@ class Chainlink:
     self._pull_status = {}
     self._pull_images()
 
-  def run(self, environ):
+  def run(self, environ={}):
     results = []
     with tempfile.TemporaryDirectory(dir=self.workdir) as mount:
       logger.info("using {} for temporary job directory".format(mount))
