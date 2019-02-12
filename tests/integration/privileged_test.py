@@ -6,16 +6,16 @@ stages = [
   {
     "image": "ubuntu:14.04",
     "entrypoint": ["unshare", "--mount", "echo", "dumb"],
-    "capabilities": ["SYS_ADMIN"]
+    "privileged": True
   },
   {
     "image": "ubuntu:14.04",
     "entrypoint": ["ip", "link", "set", "lo", "up"],
-    "capabilities": ["NET_ADMIN"]
+    "privileged": True
   }
 ]
 
-class TestCapAdd(unittest.TestCase):
+class TestPrivileged(unittest.TestCase):
 
   def test_basic_chain(self):
     chain = Chainlink(stages)

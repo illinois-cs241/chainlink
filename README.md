@@ -25,8 +25,6 @@ The `Chainlink` constructor takes a list of `stages` to chain and a `workdir` in
 ```python
 # a single-stage specification
 stages = [{
-  # container capabilities (optional, defaults to [])
-  "capabilities": ["NET_ADMIN", "SYS_ADMIN"],
   # container entrypoint (optional, defaults to image entrypoint)
   "entrypoint": ["ip", "link", "set", "lo", "up"],
   # container hostname (optional, defaults to 'container')
@@ -37,6 +35,8 @@ stages = [{
   "memory": "2g",
   # whether to allow networking capabilities (optional, defaults to True)
   "networking": True,
+  # whether to switch on privileged mode (optional, defaults to False)
+  "privileged": True,
   # the number of seconds until the container is killed (optional, defaults to 30)
   "timeout": 30,
   # container environment additions/overrides (optional, defaults to none)
