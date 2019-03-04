@@ -79,7 +79,6 @@ class Chainlink:
     # TODO find a way to set disk limit?
     options = {
       "cpu_period": 100000, # microseconds
-      "cpu_quota": 90000, # container consumes up to 90% CPU
       "detach": True,
       "entrypoint": stage.get("entrypoint", None),
       "environment": environ,
