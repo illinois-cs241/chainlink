@@ -1,0 +1,20 @@
+sudo: required
+language: python
+python:
+    - "3.6"
+services:
+    - docker
+cache: pip
+branches:
+    only:
+    - /.*/
+install:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install -r requirements_test.txt
+script:
+    - black --check chainlink/ tests/ setup.py
+    - flake8 --count --config=setup.cfg
+    - py.test -v --cov=chainlink/ tests/ setup.py --cov coveralls --cov-report term-missing --doctest-modules
+after_success:
+    - coveralls
