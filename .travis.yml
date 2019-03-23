@@ -12,6 +12,7 @@ install:
     - pip install --upgrade pip
     - pip install -r requirements.txt
     - pip install -r requirements_test.txt
+    - python setup.py
 script:
     - black --check chainlink/ tests/ setup.py
     - flake8 --count --config=setup.cfg
