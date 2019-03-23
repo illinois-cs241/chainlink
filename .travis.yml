@@ -16,6 +16,6 @@ install:
 script:
     - black --check chainlink/ tests/ setup.py
     - flake8 --count --config=setup.cfg
-    - py.test -v --cov=chainlink/ tests/ setup.py --cov coveralls --cov-report term-missing --doctest-modules
+    - py.test -v --cov=chainlink/ tests/ --cov coveralls --cov-report term-missing --doctest-modules
 after_success:
     - coveralls
