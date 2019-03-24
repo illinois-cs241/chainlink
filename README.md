@@ -1,4 +1,8 @@
 # Chainlink
+[![Build Status](https://travis-ci.com/illinois-cs241/chainlink.svg?branch=master)](https://travis-ci.com/illinois-cs241/chainlink)
+[![Coverage Status](https://coveralls.io/repos/github/illinois-cs241/chainlink/badge.svg?branch=master)](https://coveralls.io/github/illinois-cs241/chainlink?branch=master)
+![License](https://img.shields.io/badge/license-NCSA%2FIllinois-blue.svg)
+![Python Versions](https://img.shields.io/badge/python-3.5%20%7C%203.6-blue.svg)
 
 `chainlink` is a Python module for running Docker containers in sequence.
 
@@ -71,7 +75,7 @@ The run function returns a list of object, an example of which is annotated belo
   # immediately before it was removed (see Docker SDK for details)
   "data": { ... },
   # whether or not the stage was killed due to a timeout
-  "killed": False
+  "killed": False,
   # the stdout and stderr (with timestamps) for the stage
   "logs": {
     "stdout": b"bytestring",
