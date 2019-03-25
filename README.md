@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.com/illinois-cs241/chainlink.svg?branch=master)](https://travis-ci.com/illinois-cs241/chainlink)
 [![Coverage Status](https://coveralls.io/repos/github/illinois-cs241/chainlink/badge.svg?branch=master)](https://coveralls.io/github/illinois-cs241/chainlink?branch=master)
 ![License](https://img.shields.io/badge/license-NCSA%2FIllinois-blue.svg)
-![Python Versions](https://img.shields.io/badge/python-3.5%20%7C%203.6-blue.svg)
+![Python Versions](https://img.shields.io/badge/python-3.5%2B-blue.svg)
 
 `chainlink` is a Python module for running Docker containers in sequence.
 
