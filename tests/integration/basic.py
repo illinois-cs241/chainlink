@@ -13,8 +13,8 @@ stages_1 = [
 
 stages_2 = [
     {
-        "image": "no-such-image:1000000.001.3.1415926535",
-        "entrypoint": ["ain't", "no", "gonna", "run"],
+        "image": "no-such-image:3.1415926535",
+        "entrypoint": ["env"],
     }
 ]
 
