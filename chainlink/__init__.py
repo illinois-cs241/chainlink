@@ -121,7 +121,7 @@ class Chainlink:
         try:
             await asyncio.wait_for(
                 event_loop.run_in_executor(self._executor, container.wait),
-                timeout=timeout
+                timeout=timeout,
             )
         except asyncio.TimeoutError:
             logger.error("killing container after {} seconds".format(timeout))
