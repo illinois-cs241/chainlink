@@ -11,12 +11,7 @@ stages_1 = [
     {"image": "alpine:3.5", "entrypoint": ["sleep", "2"]},
 ]
 
-stages_2 = [
-    {
-        "image": "no-such-image:3.1415926535",
-        "entrypoint": ["env"],
-    }
-]
+stages_2 = [{"image": "no-such-image:3.1415926535", "entrypoint": ["env"]}]
 
 env = {"TEST": "testing", "SEMESTER": "sp18", "ASSIGNMENT": "mp1"}
 
