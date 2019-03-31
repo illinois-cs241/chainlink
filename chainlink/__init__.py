@@ -26,14 +26,18 @@ class Chainlink:
         self._pull_status = {}
         self._pull_images()
 
+    # sync version
     def run(self, environ={}):
+        return asyncio.get_event_loop().run_until_complete(self.run_async(environ))
+
+    async def run_async(self, environ={}):
         results = []
         with tempfile.TemporaryDirectory(dir=self.workdir) as mount:
             logger.info("using {} for temporary job directory".format(mount))
 
             for (idx, stage) in enumerate(self.stages):
                 logger.info("running stage {}".format(idx + 1))
-                results.append(self._run_stage(stage, mount, environ))
+                results.append(await self._run_stage(stage, mount, environ))
                 if not results[-1]["success"]:
                     logger.error("stage {} was unsuccessful".format(idx + 1))
                     break
@@ -74,7 +78,7 @@ class Chainlink:
         except docker.errors.ImageNotFound:
             logger.error("image '{}' not found remotely or locally".format(image))
 
-    def _run_stage(self, stage, mount, environ):
+    async def _run_stage(self, stage, mount, environ):
         environ = {**environ, **stage.get("env", {})}
         volumes = {mount: {"bind": "/job", "mode": "rw"}}
 
@@ -94,7 +98,7 @@ class Chainlink:
             "tty": True,
         }
 
-        container, killed = self._wait_for_stage(stage, options)
+        container, killed = await self._wait_for_stage(stage, options)
         result = {
             "data": self.client.api.inspect_container(container.id)["State"],
             "killed": killed,
@@ -108,27 +112,23 @@ class Chainlink:
 
         return result
 
-    def _wait_for_stage(self, stage, options):
+    async def _wait_for_stage(self, stage, options):
         timeout = stage.get("timeout", 30)
         container = self.client.containers.run(stage["image"], **options)
-
-        # anonymous async runner for executing and waiting on container
-        async def __run(loop, executor):
-            try:
-                await asyncio.wait_for(
-                    loop.run_in_executor(executor, container.wait), timeout=timeout
-                )
-            except asyncio.TimeoutError:
-                logger.error("killing container after {} seconds".format(timeout))
-                container.kill()
-                return True
-            return False
-
         event_loop = asyncio.get_event_loop()
-        killed = event_loop.run_until_complete(
-            asyncio.gather(__run(event_loop, self._executor))
-        )[0]
-        return container, killed
+
+        # execute and wait
+        try:
+            await asyncio.wait_for(
+                event_loop.run_in_executor(self._executor, container.wait),
+                timeout=timeout
+            )
+        except asyncio.TimeoutError:
+            logger.error("killing container after {} seconds".format(timeout))
+            container.kill()
+            return container, True
+
+        return container, False
 
     def __del__(self):
         self.client.close()
