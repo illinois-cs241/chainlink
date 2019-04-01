@@ -60,7 +60,8 @@ Note that all images needed to run the specified stages are pulled in parallel d
 #### Run
 
 ```
-run(self, environ={}):
+def run(self, environ={})
+async def run_async(self, environ={})
 ```
 
 The `Chainlink` run function takes a base environment (`environ`) and executes each container specified by `stages` during construction in sequence. If a stage fails, then no subsequent stages will be run.
@@ -85,6 +86,8 @@ The run function returns a list of object, an example of which is annotated belo
 ```
 
 Note that the returned list will have the same number of elements as there are stages, with element corresponding to the stage with the same index.
+
+`run_async` is an async version of `run`.
 
 ### Cross-Stage Communication
 
