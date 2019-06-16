@@ -69,7 +69,7 @@ class Chainlink:
             client.images.pull(image)
             status[image] = True
             return
-        except docker.errors.ImageNotFound:
+        except docker.errors.NotFound:
             logger.debug("image '{}' not found on Docker Hub".format(image))
 
         try:
