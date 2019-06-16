@@ -71,12 +71,16 @@ class Chainlink:
             return
         except docker.errors.NotFound:
             logger.debug("image '{}' not found on Docker Hub".format(image))
+        except docker.errors.APIError as err:
+            logger.debug("Docker API Error: {}".format(str(err)))
 
         try:
             client.images.get(image)
             status[image] = True
         except docker.errors.ImageNotFound:
             logger.error("image '{}' not found remotely or locally".format(image))
+        except docker.errors.APIError as err:
+            logger.debug("Docker API Error: {}".format(str(err)))
 
     async def _run_stage(self, stage, mount, environ):
         environ = {**environ, **stage.get("env", {})}
