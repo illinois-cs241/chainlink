@@ -95,9 +95,22 @@ A single directory is mounted at `/job` in each container before it is run, and 
 
 This helps facilitate cross-stage communication, which becomes particularly useful if certain stages need to pass along results.
 
+### Private Registry Support
+
+If you choose to [set up a private registry](https://docs.docker.com/registry/deploying/), you should secure it. After it is secured, set up your credentials in the docker daemon using 
+
+```shell
+docker login [registry.example.com]
+``` 
+
+where `registry.example.com` is the address of your registry. Note that you may want to [configure how the daemon stores your credentials](https://docs.docker.com/engine/reference/commandline/login/#credentials-store) for security reasons.
+
+After this, an image such as `registry.example.com/alpine:latest` can be pulled and used by `chainlink`.
+
 ### Troubleshooting
 
 - Docker usually needs to be run with `sudo` in order to get the right permissions to work. Please check that you have the proper permissions to interact with Docker before reporting an issue
+- The `sudo` user has a different Docker credential set than other users. Please check that you have run `docker login` for all registries (public or private) for the user that is executing a `chainlink` script
 - Files mounted into the temp directory used to store `/job` files across stages usually are written as `sudo` due to Dockers defaults. Failing to use this library with `sudo` may result in failures during cleanup
 - This module needs a default event loop to be present in order to operate. In most cases, you will not have to take any action to ensure that one exists. In more complicated systems, you may have to set a default event loop for the thread that you are running a `Chainlink` instance in
 
