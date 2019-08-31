@@ -43,6 +43,8 @@ stages = [{
   "privileged": True,
   # the number of seconds until the container is killed (optional, defaults to 30)
   "timeout": 30,
+  # enable saving the logs from this stage
+  "logs": False,
   # container environment additions/overrides (optional, defaults to none)
   "env": {
     "VAR1": "1"
