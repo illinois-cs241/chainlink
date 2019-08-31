@@ -108,17 +108,12 @@ class Chainlink:
         result = {
             "data": self.client.api.inspect_container(container.id)["State"],
             "killed": killed,
+            "logs": {"stdout": None, "stderr": None},
         }
         if stage.get("logs", True):
-            result["logs"] = {
-                "stdout": container.logs(stderr=False, timestamps=True),
-                "stderr": container.logs(stdout=False, timestamps=True),
-            }
-        else:
-            result["logs"] = {
-                "stdout": "logs have been silenced for this stage",
-                "stderr": "logs have been silenced for this stage",
-            }
+            result["logs"]["stdout"] = container.logs(stderr=False, timestamps=True)
+            result["logs"]["stderr"] = container.logs(stdout=False, timestamps=True)
+
         result["success"] = (not killed) and (result["data"]["ExitCode"] == 0)
         container.remove()
 
