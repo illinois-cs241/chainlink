@@ -28,4 +28,4 @@ class TestBasicChaining(unittest.TestCase):
 
     def test_no_such_image(self):
         with self.assertRaises(Exception):
-            Chainlink(stages_2)
+            Chainlink(stages_2).run({})

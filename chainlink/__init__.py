@@ -3,7 +3,6 @@ import concurrent
 import concurrent.futures
 import logging
 import tempfile
-import threading
 
 import docker
 import docker.errors
@@ -18,20 +17,22 @@ class Chainlink:
     A utility for running docker containers sequentially
     """
 
-    def __init__(self, stages, workdir="/tmp"):
+    def __init__(self, stages, workdir="/tmp", max_workers=4):
         self.client = docker.from_env()
         self.stages = stages
         self.workdir = workdir
-        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        self._pull_status = {}
-        self._pull_images()
+        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers)
 
-    # sync version
-    def run(self, environ={}):
-        return asyncio.get_event_loop().run_until_complete(self.run_async(environ))
+    def run(self, *args, **kwargs):
+        return asyncio.get_event_loop().run_until_complete(
+            self.run_async(*args, **kwargs)
+        )
 
     async def run_async(self, environ={}):
         results = []
+
+        await self._pull_images()
+
         with tempfile.TemporaryDirectory(dir=self.workdir) as mount:
             logger.info("using {} for temporary job directory".format(mount))
 
@@ -46,43 +47,34 @@ class Chainlink:
 
         return results
 
-    def _pull_images(self):
+    async def _pull_images(self):
         images = set([stage["image"] for stage in self.stages])
-        threads = []
+        tasks = []
 
         for image in images:
             logger.debug("pulling image '{}'".format(image))
-            t = threading.Thread(
-                target=self._pull_image, args=(self.client, image, self._pull_status)
-            )
-            t.start()
-            threads.append(t)
-        for t in threads:
-            t.join()
-        for image in images:
-            if not self._pull_status.get(image):
-                raise ValueError("Failed to pull all images")
 
-    @staticmethod
-    def _pull_image(client, image, status):
-        try:
-            client.images.pull(image)
-            status[image] = True
-            return
-        except docker.errors.NotFound:
-            logger.debug("image '{}' not found on Docker Hub".format(image))
-        except docker.errors.APIError as err:
-            logger.debug("Docker API Error: {}".format(err))
-            return
+            tasks.append(self._pull_image(image))
 
         try:
-            client.images.get(image)
-            status[image] = True
+            await asyncio.gather(*tasks)
         except docker.errors.ImageNotFound:
             logger.error("image '{}' not found remotely or locally".format(image))
         except docker.errors.APIError as err:
-            logger.debug("Docker API Error: {}".format(err))
-            return
+            logger.error("Docker API Error: {}".format(err))
+
+    async def _pull_image(self, image):
+        def wait():
+            try:
+                return self.client.images.pull(image)
+            except docker.errors.NotFound:
+                # if not found on docker hub, try locally
+                logger.info(
+                    "image '{}' not found on Docker Hub, fetching locally".format(image)
+                )
+                return self.client.images.get(image)
+
+        return await asyncio.get_event_loop().run_in_executor(self._executor, wait)
 
     async def _run_stage(self, stage, mount, environ):
         environ = {**environ, **stage.get("env", {})}
