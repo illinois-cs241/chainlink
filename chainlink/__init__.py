@@ -2,6 +2,7 @@ import asyncio
 import concurrent
 import concurrent.futures
 import logging
+import os
 import tempfile
 
 import docker
@@ -35,6 +36,7 @@ class Chainlink:
 
         with tempfile.TemporaryDirectory(dir=self.workdir) as mount:
             logger.info("using {} for temporary job directory".format(mount))
+            os.chmod(mount, 0o777)
 
             for (idx, stage) in enumerate(self.stages):
                 logger.info("running stage {}".format(idx + 1))
