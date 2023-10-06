@@ -37,6 +37,8 @@ stages = [{
   "image": "alpine:3.5",
   # memory cap (optional, defaults to 2GB)
   "memory": "2g",
+  # set of cpus to use, e.g. 0-3 for the first four or 0,2 for the first and third (optional, defaults to all)
+  "cpuset_cpus": "0-7",
   # whether to allow networking capabilities (optional, defaults to True)
   "networking": True,
   # whether to switch on privileged mode (optional, defaults to False)

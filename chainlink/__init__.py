@@ -85,6 +85,7 @@ class Chainlink:
         # TODO find a way to set disk limit?
         options = {
             "cpu_period": 100000,  # microseconds
+            "cpuset_cpus": stage.get("cpuset_cpus", None),
             "detach": True,
             "entrypoint": stage.get("entrypoint", None),
             "environment": environ,
